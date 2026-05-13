@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Reaction Speed Test | Uji Kecepatan Reaksi</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 1rem;
+    }
+
+    /* Container Utama */
+    .game-container {
+      max-width: 900px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(2px);
+      border-radius: 2rem;
+      padding: 1.5rem;
+      box-shadow: 0 25px 40px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    /* Area permainan */
+    .game-area {
+      background-color: #2c3e50;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.05s linear, transform 0.2s;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2), 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .game-area:active {
+      transform: scale(0.99);
+    }
+
+    /* Pesan dalam area game */
+    .message {
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.5);
+      padding: 0.8rem 1.8rem;
+      border-radius: 50px;
+      backdrop-filter: blur(4px);
+      letter-spacing: 1px;
+    }
+
+    .reaction-time {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-top: 1rem;
+      color: #f1c40f;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Panel Statistik */
+    .stats-panel {
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 1.2rem;
+      padding: 1.2rem;
+      margin-top: 1.5rem;
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: space-between;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 1rem;
+      padding: 0.8rem 1.2rem;
+      flex: 1;
+      text-align: center;
+      min-width: 100px;
+      transition: all 0.2s;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #bbb;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #f39c12;
+      line-height: 1.2;
+    }
+
+    /* Riwayat percobaan */
+    .history-section {
+      margin-top: 1.5rem;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+
+    .history-title {
+      color: white;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      margin-bottom: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    .history-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      justify-content: center;
+    }
+
+    .history-badge {
+      background: #2c3e50;
+      padding: 0.4rem 0.9rem;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #ecf0f1;
+      transition: 0.1s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .best-badge {
+      background: #f39c12;
+      color: #1a1a2e;
+    }
+
+    /* Tombol reset */
+    .reset-btn {
+      background: rgba(231, 76, 60, 0.9);
+      border: none;
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.15s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .reset-btn:hover {
+      background: #e74c3c;
+      transform: scale(1.02);
+    }
+
+    /* Warna Background Game Area berdasarkan state */
+    .state-wait {
+      background-color: #2980b9 !important;
+    }
+    .state-ready-click {
+      background-color: #27ae60 !important;
+    }
+    .state-too-soon {
+      background-color: #c0392b !important;
+    }
+    .state-init {
+      background-color: #34495e !important;
+    }
+
+    /* Info Developer & Donasi */
+    .developer-section {
+      margin-top: 1.5rem;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 1rem;
+      padding: 0.8rem 1rem;
+      text-align: center;
+      color: #ddd;
+      font-size: 0.85rem;
+      backdrop-filter: blur(4px);
+    }
+
+    .developer-name {
+      font-weight: bold;
+      color: #f39c12;
+      letter-spacing: 1px;
+    }
+
+    .donation-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 0.6rem;
+      align-items: center;
+    }
+
+    .donation-btn {
+      background: #f1c40f;
+      color: #1a1a2e;
+      padding: 0.4rem 1rem;
+      border-radius: 2rem;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.8rem;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .donation-btn:hover {
+      background: #e67e22;
+      color: white;
+      transform: scale(1.02);
+    }
+
+    .qris-img {
+      height: 40px;
+      width: auto;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      background: white;
+      padding: 4px;
+    }
+
+    .qris-img:hover {
+      transform: scale(1.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .game-container {
+        padding: 1rem;
+      }
+      .message {
+        font-size: 1.2rem;
+      }
+      .reaction-time {
+        font-size: 2rem;
+      }
+      .stat-value {
+        font-size: 1.2rem;
+      }
+      .game-area {
+        min-height: 300px;
+        padding: 1.2rem;
+      }
+      .donation-links {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <!-- Area klik utama -->
+  <div class="game-area" id="gameArea">
+    <div class="message" id="statusMessage">Klik untuk mulai</div>
+    <div class="reaction-time" id="realtimeDisplay">— ms</div>
+  </div>
+
+  <!-- Panel statistik -->
+  <div class="stats-panel">
+    <div class="stat-card">
+      <div class="stat-label">⚡ WAKTU TERAKHIR</div>
+      <div class="stat-value" id="lastTime">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">🏆 TERBAIK</div>
+      <div class="stat-value" id="bestTime">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">📊 RATA-RATA (5x)</div>
+      <div class="stat-value" id="avgTime">—</div>
+    </div>
+  </div>
+
+  <!-- Riwayat skor -->
+  <div class="history-section">
+    <div class="history-title">
+      <span>📋 RIWAYAT 10 PERCOBAAN TERAKHIR</span>
+      <button class="reset-btn" id="resetStatsBtn">↻ Reset Statistik</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <span class="history-badge">Belum ada data</span>
+    </div>
+  </div>
+
+  <!-- INFO DEVELOPER & DONASI -->
+  <div class="developer-section">
+    <div>🎮 <span class="developer-name">THOHIR</span> — Pembuat Game</div>
+    <div class="donation-links">
+      <a href="https://saweria.co/Thohirdevv" target="_blank" class="donation-btn">
+        🤝 Donasi via Saweria
+      </a>
+      <span style="display: flex; align-items: center; gap: 8px;">
+        <span>📱 QRIS Dana:</span>
+        <img src="https://files.catbox.moe/8izjx2.jpg" alt="QRIS Dana Thohir" class="qris-img" id="qrisImage" title="Scan untuk donasi">
+      </span>
+    </div>
+    <div style="font-size: 0.7rem; margin-top: 8px; opacity: 0.7;">
+      Terima kasih atas dukungannya! ❤️
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- STATE GAME ---
+  let state = "waiting"; // waiting, countdown, ready
+  let reactionTimeout = null;
+  let startTime = 0;
+  let testActive = false;
+  
+  // Data statistik
+  let reactionTimes = [];
+  let lastReactionTime = null;
+  let bestReactionTime = Infinity;
+  
+  // Elemen DOM
+  const gameArea = document.getElementById("gameArea");
+  const statusMsg = document.getElementById("statusMessage");
+  const realtimeSpan = document.getElementById("realtimeDisplay");
+  const lastTimeSpan = document.getElementById("lastTime");
+  const bestTimeSpan = document.getElementById("bestTime");
+  const avgTimeSpan = document.getElementById("avgTime");
+  const historyContainer = document.getElementById("historyList");
+  const resetBtn = document.getElementById("resetStatsBtn");
+
+  // --- Helper functions ---
+  function formatTime(ms) {
+    if (ms === null || ms === undefined || ms === Infinity) return "—";
+    return `${Math.round(ms)} ms`;
+  }
+
+  function updateUIStats() {
+    if (lastReactionTime !== null) {
+      lastTimeSpan.innerText = formatTime(lastReactionTime);
+    } else {
+      lastTimeSpan.innerText = "—";
+    }
+    
+    if (bestReactionTime !== Infinity && bestReactionTime > 0) {
+      bestTimeSpan.innerText = formatTime(bestReactionTime);
+    } else {
+      bestTimeSpan.innerText = "—";
+    }
+    
+    const lastFive = reactionTimes.slice(-5);
+    if (lastFive.length > 0) {
+      const sum = lastFive.reduce((a, b) => a + b, 0);
+      const avg = sum / lastFive.length;
+      avgTimeSpan.innerText = formatTime(avg);
+    } else {
+      avgTimeSpan.innerText = "—";
+    }
+    
+    if (reactionTimes.length === 0) {
+      historyContainer.innerHTML = '<span class="history-badge">Belum ada data</span>';
+      return;
+    }
+    
+    const lastTen = [...reactionTimes].reverse().slice(0, 10);
+    historyContainer.innerHTML = lastTen.map((time, idx) => {
+      const isBest = (bestReactionTime !== Infinity && Math.abs(time - bestReactionTime) < 0.1);
+      return `<span class="history-badge ${isBest ? 'best-badge' : ''}">${Math.round(time)} ms</span>`;
+    }).join('');
+  }
+
+  function addReactionTime(ms) {
+    if (ms <= 0 || ms > 3000) return;
+    reactionTimes.push(ms);
+    lastReactionTime = ms;
+    
+    if (ms < bestReactionTime) {
+      bestReactionTime = ms;
+    }
+    
+    saveToLocalStorage();
+    updateUIStats();
+  }
+  
+  function resetAllStats() {
+    reactionTimes = [];
+    lastReactionTime = null;
+    bestReactionTime = Infinity;
+    saveToLocalStorage();
+    updateUIStats();
+    
+    if (state !== "waiting") {
+      cancelGameCycle();
+      setWaitingState();
+    }
+    realtimeSpan.innerText = "— ms";
+    statusMsg.innerText = "Klik untuk mulai";
+    gameArea.classList.remove('state-ready-click', 'state-too-soon', 'state-wait');
+    gameArea.classList.add('state-init');
+  }
+  
+  function saveToLocalStorage() {
+    const data = {
+      times: reactionTimes,
+      last: lastReactionTime,
+      best: bestReactionTime
+    };
+    localStorage.setItem("reactionGameStats", JSON.stringify(data));
+  }
+  
+  function loadFromLocalStorage() {
+    const saved = localStorage.getItem("reactionGameStats");
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.times && Array.isArray(data.times)) reactionTimes = data.times;
+        if (data.last) lastReactionTime = data.last;
+        if (data.best) bestReactionTime = data.best;
+        if (bestReactionTime === undefined || bestReactionTime === null) bestReactionTime = Infinity;
+        updateUIStats();
+      } catch(e) { console.warn(e); }
+    }
+  }
+  
+  function cancelGameCycle() {
+    if (reactionTimeout) {
+      clearTimeout(reactionTimeout);
+      reactionTimeout = null;
+    }
+    testActive = false;
+  }
+  
+  function setWaitingState() {
+    state = "waiting";
+    testActive = false;
+    gameArea.classList.remove('state-ready-click', 'state-too-soon', 'state-wait');
+    gameArea.classList.add('state-init');
+    statusMsg.innerText = "Klik untuk mulai";
+    realtimeSpan.innerText = "— ms";
+    if (reactionTimeout) {
+      clearTimeout(reactionTimeout);
+      reactionTimeout = null;
+    }
+  }
+  
+  function startTestSequence() {
+    if (state !== "waiting") return;
+    
+    state = "countdown";
+    testActive = true;
+    gameArea.classList.remove('state-init', 'state-ready-click');
+    gameArea.classList.add('state-wait');
+    statusMsg.innerText = "🌙 Bersiap... tunggu warna hijau";
+    realtimeSpan.innerText = "⚡";
+    
+    const randomDelay = Math.floor(Math.random() * (5000 - 1000 + 1) + 1000);
+    
+    reactionTimeout = setTimeout(() => {
+      if (state === "countdown" && testActive) {
+        state = "ready";
+        startTime = performance.now();
+        gameArea.classList.remove('state-wait');
+        gameArea.classList.add('state-ready-click');
+        statusMsg.innerHTML = "🟢 KLIK SEKARANG! 🟢";
+        realtimeSpan.innerText = "0 ms";
+        reactionTimeout = null;
+      }
+    }, randomDelay);
+  }
+  
+  function onGameAreaClick() {
+    if (state === "waiting") {
+      startTestSequence();
+      return;
+    }
+    
+    if (state === "ready") {
+      const reactionMs = performance.now() - startTime;
+      if (reactionMs > 0 && reactionMs < 2000) {
+        addReactionTime(reactionMs);
+        realtimeSpan.innerText = `${Math.round(reactionMs)} ms`;
+        statusMsg.innerHTML = `✅ Reaksi ${Math.round(reactionMs)} ms! Klik lagi untuk lanjut`;
+        gameArea.classList.remove('state-ready-click');
+        gameArea.classList.add('state-init');
+        cancelGameCycle();
+        state = "waiting"; 
+        testActive = false;
+        setTimeout(() => {
+          if (state === "waiting") {
+            statusMsg.innerText = "Klik untuk mulai lagi";
+          }
+        }, 800);
+      } else {
+        if (reactionMs < 80) {
+          tooSoonReaction();
+        } else {
+          addReactionTime(reactionMs);
+          realtimeSpan.innerText = `${Math.round(reactionMs)} ms`;
+          statusMsg.innerHTML = `⚠️ Reaksi terdeteksi! ${Math.round(reactionMs)} ms. Klik lanjut`;
+          gameArea.classList.remove('state-ready-click');
+          gameArea.classList.add('state-init');
+          cancelGameCycle();
+          state = "waiting";
+          testActive = false;
+          setTimeout(() => {
+            if (state === "waiting") statusMsg.innerText = "Klik untuk mulai lagi";
+          }, 800);
+        }
+      }
+      return;
+    }
+    
+    if (state === "countdown") {
+      tooSoonReaction();
+      return;
+    }
+  }
+  
+  function tooSoonReaction() {
+    cancelGameCycle();
+    state = "waiting";
+    testActive = false;
+    gameArea.classList.remove('state-wait', 'state-ready-click');
+    gameArea.classList.add('state-too-soon');
+    statusMsg.innerHTML = "❌ Terlalu cepat! Tunggu hingga warna hijau. Klik untuk coba lagi.";
+    realtimeSpan.innerText = "❗ false start";
+    setTimeout(() => {
+      if (state === "waiting") {
+        gameArea.classList.remove('state-too-soon');
+        gameArea.classList.add('state-init');
+        statusMsg.innerText = "Klik untuk mulai";
+        realtimeSpan.innerText = "— ms";
+      } else {
+        if (gameArea.classList.contains('state-too-soon')) gameArea.classList.remove('state-too-soon');
+      }
+    }, 1000);
+  }
+  
+  // Inisialisasi
+  function initGame() {
+    loadFromLocalStorage();
+    setWaitingState();
+    gameArea.addEventListener("click", onGameAreaClick);
+    resetBtn.addEventListener("click", () => {
+      resetAllStats();
+      setWaitingState();
+      gameArea.classList.remove('state-ready-click', 'state-too-soon', 'state-wait');
+      gameArea.classList.add('state-init');
+      statusMsg.innerText = "Klik untuk mulai";
+      realtimeSpan.innerText = "— ms";
+    });
+    
+    // Optional: jika ingin QRIS dibuka di tab baru saat diklik
+    const qrisImg = document.getElementById("qrisImage");
+    if (qrisImg) {
+      qrisImg.addEventListener("click", () => {
+        window.open("https://saweria.co/Thohirdevv", "_blank"); // Arahkan ke Saweria atau biarkan gambar saja. Tapi biarkan gambar tetap sebagai QR.
+        // Agar lebih interaktif, bisa ditambahkan alert jika perlu.
+      });
+    }
+  }
+  
+  initGame();
+</script>
+</body>
+</html>
